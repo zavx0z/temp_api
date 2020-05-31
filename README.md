@@ -8,3 +8,8 @@ flask db migrate -m "message"
 flask db upgrade
 flask db downgrade
 ```
+### celery
+* start
+```bash
+celery -A flask_app.celery worker --loglevel=info
+```
