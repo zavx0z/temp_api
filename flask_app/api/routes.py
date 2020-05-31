@@ -1,27 +1,31 @@
 import logging
 
-from flask import request
+from flask import request, jsonify
 
 from flask_app import socketio, celery
 from flask_app.api import api
 from flask_socketio import send, emit
-
-
-@api.route('/', methods=['GET'])
-def api_entry_point():
-    return {"success": "ok"}
+import requests
 
 
 @celery.task()
-def task(data):
+def query_data(data):
+    r = requests.post('http://localhost:5000/api/', {data: data})
     logging.info(f"run celery {data}")
+
+
+@api.route('/', methods=['POST'])
+def api_entry_point():
+    data = request.json.get('data')
+    print(data)
+    return {"success": "ok"}
 
 
 @api.route('/task', methods=['POST'])
 def run_task():
-    msg = request.json.get("task")
-    task.delay(msg)
-    return {"success": "ok", "msg": msg}
+    msg = request.json.get("query")
+    query_data.delay(msg)
+    return jsonify({"success": "ok", "msg": msg})
 
 
 @socketio.on('message')
